@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flujos PROGAN - Visualizador de Diagramas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: #1e1e1e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1600px;
+            text-align: center;
+        }
+        
+        #imagePlaceholder {
+            max-width: 100%;
+            max-height: 85vh;
+            width: auto;
+            height: auto;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+            border-radius: 8px;
+            background-color: white;
+        }
+        
+        .error {
+            color: #ff6b6b;
+            font-size: 24px;
+            padding: 40px;
+            background-color: #2d2d2d;
+            border-radius: 8px;
+            border: 2px solid #ff6b6b;
+        }
+        
+        .dashboard-name {
+            color: #4ecdc4;
+            font-size: 20px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 600;
+        }
+        
+        .loading {
+            color: white;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="dashboardName" class="dashboard-name"></div>
+        <img id="imagePlaceholder" alt="Flujo del Dashboard" style="display:none;">
+        <div id="loading" class="loading">Cargando...</div>
+        <div id="error" class="error" style="display:none;">
+            ⚠️ Dashboard no encontrado
+        </div>
+    </div>
+
+    <script>
+        // Mapeo completo de dashboards a imágenes
+        const imageUrls = {
+            'basc': './flujos/BASC.png',
+            'capture': './flujos/Capture.png',
+            'cartera': './flujos/Cartera.png',
+            'compras': './flujos/Compras.png',
+            'dashboardevonik': './flujos/Dashboard Evonik.png',
+            'g4servicescomercial': './flujos/G4 Services Comercial.png',
+            'g4servicesoperaciones': './flujos/G4 Services Operaciones.png',
+            'g4servicesusoperativo': './flujos/G4 Services US Operativo.png',
+            'informefinanciero': './flujos/Informe Financiero.png',
+            'jdag4services': './flujos/JDA G4 Services.png',
+            'jdaoperacionprogangroup': './flujos/JDA operacion Progan Group.png',
+            'jdaoperacionescargapro': './flujos/JDA Operaciones Cargapro.png',
+            'kpimantenimientocargapro': './flujos/KPI Mantenimiento Cargapro.png',
+            'kpioperacionescargapro': './flujos/KPI Operaciones Cargapro.png',
+            'kpioperativoprogangroup': './flujos/KPI Operativo Progan Group.png',
+            'proganusexportaciones': './flujos/Progan US Exportaciones.png',
+            'proganusoperativo': './flujos/Progan US Operativo.png',
+            'recursoshumanos': './flujos/Recursos Humanos.png'
+        };
+
+        // Nombres legibles para mostrar
+        const dashboardNames = {
+            'basc': 'BASC',
+            'capture': 'Capture',
+            'cartera': 'Cartera',
+            'compras': 'Compras',
+            'dashboardevonik': 'Dashboard Evonik',
+            'g4servicescomercial': 'G4 Services Comercial',
+            'g4servicesoperaciones': 'G4 Services Operaciones',
+            'g4servicesusoperativo': 'G4 Services US Operativo',
+            'informefinanciero': 'Informe Financiero',
+            'jdag4services': 'JDA G4 Services',
+            'jdaoperacionprogangroup': 'JDA Operación Progan Group',
+            'jdaoperacionescargapro': 'JDA Operaciones Cargapro',
+            'kpimantenimientocargapro': 'KPI Mantenimiento Cargapro',
+            'kpioperacionescargapro': 'KPI Operaciones Cargapro',
+            'kpioperativoprogangroup': 'KPI Operativo Progan Group',
+            'proganusexportaciones': 'Progan US Exportaciones',
+            'proganusoperativo': 'Progan US Operativo',
+            'recursoshumanos': 'Recursos Humanos'
+        };
+
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        function normalizeString(str) {
+            return str.toLowerCase()
+                      .replace(/\s+/g, '')
+                      .replace(/_/g, '')
+                      .normalize("NFD")
+                      .replace(/[\u0300-\u036f]/g, "");
+        }
+
+        function displayImage() {
+            const dashboard = getUrlParameter('dashboard');
+            const imagePlaceholder = document.getElementById('imagePlaceholder');
+            const errorDiv = document.getElementById('error');
+            const loadingDiv = document.getElementById('loading');
+            const dashboardNameDiv = document.getElementById('dashboardName');
+
+            if (dashboard) {
+                const normalizedDashboard = normalizeString(dashboard);
+                
+                if (imageUrls[normalizedDashboard]) {
+                    dashboardNameDiv.textContent = dashboardNames[normalizedDashboard] || dashboard;
+                    dashboardNameDiv.style.display = 'block';
+                    
+                    imagePlaceholder.src = imageUrls[normalizedDashboard];
+                    imagePlaceholder.onload = function() {
+                        loadingDiv.style.display = 'none';
+                        imagePlaceholder.style.display = 'block';
+                    };
+                    imagePlaceholder.onerror = function() {
+                        loadingDiv.style.display = 'none';
+                        errorDiv.textContent = '⚠️ Error al cargar la imagen del flujo';
+                        errorDiv.style.display = 'block';
+                    };
+                } else {
+                    loadingDiv.style.display = 'none';
+                    errorDiv.innerHTML = `⚠️ Dashboard "${dashboard}" no encontrado<br><br>
+                    <small style="font-size:14px;">Dashboards disponibles: ${Object.keys(dashboardNames).join(', ')}</small>`;
+                    errorDiv.style.display = 'block';
+                }
+            } else {
+                loadingDiv.style.display = 'none';
+                errorDiv.textContent = '⚠️ No se especificó ningún dashboard. Use: ?dashboard=nombre';
+                errorDiv.style.display = 'block';
+            }
+        }
+
+        window.onload = displayImage;
+    </script>
+</body>
+</html>
